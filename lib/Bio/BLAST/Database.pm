@@ -1,4 +1,6 @@
 package Bio::BLAST::Database;
+# ABSTRACT: work with formatted BLAST databases
+
 use strict;
 use warnings;
 
@@ -22,10 +24,7 @@ use List::Util qw/ min max /;
 use List::MoreUtils qw/ all any /;
 
 use Bio::PrimarySeq;
-
-=head1 NAME
-
-Bio::BLAST::Database - work with formatted BLAST databases
+use Bio::Seq::LargePrimarySeq;
 
 =head1 SYNOPSIS
 
@@ -64,17 +63,13 @@ C<formatdb>.
 
 =head1 BASE CLASS(ES)
 
-Class::Accessor
+L<Class::Accessor::Fast>
 
 =cut
 
 use base qw/ Class::Accessor::Fast /;
 
-=head1 SUBCLASSES
-
-=head1 METHODS
-
-=head2 open
+=method open
 
   Usage: my $fs = Bio::BLAST::Database->open({
                       full_file_basename => $ffbn,
@@ -144,24 +139,20 @@ sub open {
     }
 }
 
-=head1 ACCESSORS
+=attr full_file_basename
 
-=head2 full_file_basename
+Full path to the blast database file basename.  This is the entire
+path to the BLAST database files, except for the final suffixes
+(C<.nin>, C<.nsq>, etc).
 
-  Desc:
-  Args: none
-  Ret : full path to the blast database file basename,
-  Side Effects: none
-  Example:
-
-     my $basename = $db->full_file_basename;
-     #returns '/data/shared/blast/databases/genbank/nr'
+   my $basename = $db->full_file_basename;
+   #returns '/data/shared/blast/databases/genbank/nr'
 
 =cut
 
 __PACKAGE__->mk_accessors('full_file_basename');
 
-=head2 create_dirs
+=attr create_dirs
 
 true/false flag for whether to create any necessary dirs at format time
 
@@ -169,7 +160,7 @@ true/false flag for whether to create any necessary dirs at format time
 
 __PACKAGE__->mk_accessors('create_dirs');
 
-=head2 write
+=attr write
 
 true/false flag for whether to write any files that are in the way when formatted
 
@@ -177,7 +168,7 @@ true/false flag for whether to write any files that are in the way when formatte
 
 __PACKAGE__->mk_accessors('write');
 
-=head2 title
+=attr title
 
 title of this blast database, if set
 
@@ -185,7 +176,7 @@ title of this blast database, if set
 
 __PACKAGE__->mk_accessors('title');
 
-=head2 indexed_seqs
+=attr indexed_seqs
 
 return whether this blast database is indexed
 
@@ -198,7 +189,7 @@ sub indexed_seqs { #< indexed_seqs is read-only externally
 }
 __PACKAGE__->mk_accessors('_indexed_seqs');
 
-=head2 type
+=attr type
 
 accessor for type of blastdb.  must be set in new(), but open() looks
 at the existing files and sets this
@@ -219,7 +210,7 @@ sub type {
 }
 
 
-=head2 to_fasta
+=method to_fasta
 
   Usage: my $fasta_fh = $bdb->to_fasta;
   Desc : get the contents of this blast database in FASTA format
@@ -300,7 +291,7 @@ sub _check_external_tools {
   return;
 }
 
-=head2 format_from_file
+=method format_from_file
 
   Usage: $db->format_from_file(seqfile => 'mysequences.seq');
   Desc : format this blast database from the given source file,
@@ -414,7 +405,7 @@ sub format_from_file {
   $self->_read_fastacmd_info;
 }
 
-=head2 file_modtime
+=method file_modtime
 
   Desc: get the earliest unix modification time of the database files
   Args: none
@@ -432,7 +423,7 @@ sub file_modtime {
 }
 
 
-=head2 format_time
+=method format_time
 
   Usage: my $time = $db->format_time;
   Desc : get the format time of these db files
@@ -457,7 +448,7 @@ sub file_modtime {
 __PACKAGE__->mk_accessors('format_time');
 
 
-=head2 check_format_permissions
+=method check_format_permissions
 
   Usage: $bdb->check_format_from_file() or die "cannot format!\n";
   Desc : check directory existence and file permissions to see if a
@@ -516,7 +507,7 @@ sub check_format_permissions {
   return;
 }
 
-=head2 is_split
+=method is_split
 
   Usage: print "that thing is split, yo" if $db->is_split;
   Desc : determine whether this database is in multiple parts
@@ -534,7 +525,7 @@ sub is_split {
   return 0;
 }
 
-=head2 files_are_complete
+=method files_are_complete
 
   Usage: print "complete!" if $db->files_are_complete;
   Desc : tell whether this blast db has a complete set of files on disk
@@ -591,7 +582,7 @@ sub files_are_complete {
 	     } @necessary_extensions;
 }
 
-=head2 list_files
+=method list_files
 
   Usage: my @files = $db->list_files;
   Desc : get the list of files that belong to this blast database
@@ -632,7 +623,7 @@ sub _list_files {
   return @myfiles;
 }
 
-=head2 sequences_count
+=method sequences_count
 
   Desc: get the number of sequences in this blast database
   Args: none
@@ -645,7 +636,7 @@ sub _list_files {
 __PACKAGE__->mk_accessors('sequences_count');
 
 
-=head2 get_sequence
+=method get_sequence
 
   Usage: my $seq = $fs->get_sequence('LE_HBa0001A02');
   Desc : get a particular sequence from this db
@@ -771,25 +762,6 @@ sub _parse_datestr {
     #  warn "$datestr => ".ctime($time)."\n";
     return $time;
 }
-
-
-
-=head1 MAINTAINER
-
-Robert Buels
-
-=head1 AUTHOR(S)
-
-Robert Buels, E<lt>rmb32@cornell.eduE<gt>
-
-=head1 COPYRIGHT & LICENSE
-
-Copyright 2009 Boyce Thompson Institute for Plant Research
-
-This program is free software; you can redistribute it and/or modify
-it under the same terms as Perl itself.
-
-=cut
 
 ###
 1;#do not remove
