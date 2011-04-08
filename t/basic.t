@@ -18,7 +18,7 @@ use IPC::Cmd qw/ can_run /;
 
 BEGIN {
     if( can_run('fastacmd') ) {
-        plan tests => 295;
+        plan tests => 298;
     }
     else {
         plan skip_all => 'fastacmd is not installed, required to test Bio::BLAST::Database';
@@ -244,3 +244,26 @@ SKIP: {
   ok( (grep /\.\d{2}\./, @files), 'looks like big formatted db is split' );
   is( $fs->sequences_count, $seq_cnt, 'sequences count looks right' );
 }
+
+
+# test fetching a really big sequence from a formatted database
+SKIP: {
+    my $env_name = 'BIO_BLAST_DATABASE_TEST_BIG_SEQ_FETCH';
+
+    my $big_fetch = $ENV{$env_name}
+        or skip "set $env_name=sequence_name:db_ffbn to test fetching a really big sequence from an existing database.",3;
+
+    my ( $id, $ffbn, $type ) = split /:/, $ENV{$env_name}, 3
+        or die "invalid $env_name, should be formatted as sequence_name:db_ffbn";
+    $type ||= 'nucleotide';
+
+    my $db = Bio::BLAST::Database->open( full_file_basename => $ffbn,
+                                         type => $type,
+                                       );
+
+    my $seq = $db->get_sequence( $id );
+    can_ok( $seq, $_ ) for 'seq','id','length';
+    diag `ps u -p $$`;
+
+}
+
