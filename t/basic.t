@@ -18,7 +18,7 @@ use IPC::Cmd qw/ can_run /;
 
 BEGIN {
     if( can_run('fastacmd') ) {
-        plan tests => 298;
+        plan tests => 300;
     }
     else {
         plan skip_all => 'fastacmd is not installed, required to test Bio::BLAST::Database';
@@ -136,7 +136,7 @@ foreach my $type ('nucleotide','protein') {
         unlink @fake_split;
     }
 
-    ok( ! defined $fs->get_sequence('this is nonexistent ya ya ya'), 'get_sequence returns undef for nonexistent sequence' );
+    is( $fs->get_sequence('this is nonexistent ya ya ya'), undef, 'get_sequence returns undef for nonexistent sequence' );
 
     # $fs should be indexed now, test get_sequence
     my $seqio = Bio::SeqIO->new( -file => $test_seq_file, -format => 'fasta');
@@ -251,7 +251,8 @@ SKIP: {
     my $env_name = 'BIO_BLAST_DATABASE_TEST_BIG_SEQ_FETCH';
 
     my $big_fetch = $ENV{$env_name}
-        or skip "set $env_name=sequence_name:db_ffbn to test fetching a really big sequence from an existing database.",3;
+        or skip <<"", 5;
+set $env_name=sequence_name:db_ffbn to test fetching a really big sequence from an existing database.
 
     my ( $id, $ffbn, $type ) = split /:/, $ENV{$env_name}, 3
         or die "invalid $env_name, should be formatted as sequence_name:db_ffbn";
@@ -263,6 +264,8 @@ SKIP: {
 
     my $seq = $db->get_sequence( $id );
     can_ok( $seq, $_ ) for 'seq','id','length';
+    cmp_ok( $seq->length, '>=', 1000, 'seq length is at least 1000' );
+    is( $seq->trunc(20,30)->length, 11 );
     diag `ps u -p $$`;
 
 }

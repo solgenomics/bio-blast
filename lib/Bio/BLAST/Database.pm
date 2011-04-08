@@ -24,7 +24,7 @@ use IPC::System::Simple 'systemx';
 use List::Util qw/ min max /;
 use List::MoreUtils qw/ all any /;
 
-use Bio::Seq::LargePrimarySeq;
+use Bio::BLAST::Database::Seq;
 
 =head1 SYNOPSIS
 
@@ -649,35 +649,17 @@ __PACKAGE__->mk_accessors('sequences_count');
 sub get_sequence {
     my ($self, $seqname) = @_;
 
-    croak "cannot call get_sequence on an incomplete database!" unless $self->files_are_complete;
-    croak "cannot get_sequence on a database that has not been indexed for retrieval!" unless $self->indexed_seqs;
+    croak "cannot call get_sequence on an incomplete database!"
+        unless $self->files_are_complete;
 
-    my $ffbn = $self->full_file_basename;
+    croak "cannot call get_sequence on a database that has not been indexed for retrieval!"
+        unless $self->indexed_seqs;
 
-    # we can't know how big this sequence is.  fastacmd has no way (or
-    # at least no documented way) to query seq lengths.  so we need to
-    # treat the sequence as if it were big.  cause sometimes it is.
-    # so we stream to a LargePrimarySeq.
-    CORE::open my $fc, "fastacmd -d '$ffbn' -s '$seqname' 2>&1 |";
-    my $defline = <$fc>;
-    return if $defline =~ /ERROR:\s+Entry\s*"[^"]+"\s+not found/;
-    ( my $id, $defline ) = $defline =~ m(
-                                          >(?:lcl\|)?(\S+) \s+ (.*)
-                                        )x
-               or die "could not parse fastacmd output\n:$defline";
-
-    # stream the sequence into a LargePrimarySeq, read up to 4 MiB of
-    # sequence at a time
-    my $seq = Bio::Seq::LargePrimarySeq->new( -id => $id, -desc => $defline );
-    local $/ = \4_000_000;
-    while( my $seq_chunk = <$fc> ) {
-        $seq_chunk =~ s/\s//g;
-        $seq->add_sequence_as_string( $seq_chunk );
-    }
-
-    return $seq;
+    return Bio::BLAST::Database::Seq->new(
+        -bdb => $self,
+        -id  => $seqname,
+        );
 }
-
 
 # internal function to set the title, sequence count, type,
 # format_time, and indexed_seqs from the set of files on disk and from
