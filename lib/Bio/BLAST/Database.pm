@@ -3,6 +3,7 @@ package Bio::BLAST::Database;
 
 use strict;
 use warnings;
+use namespace::autoclean;
 
 use POSIX;
 
@@ -23,7 +24,6 @@ use IPC::System::Simple 'systemx';
 use List::Util qw/ min max /;
 use List::MoreUtils qw/ all any /;
 
-use Bio::PrimarySeq;
 use Bio::Seq::LargePrimarySeq;
 
 =head1 SYNOPSIS
@@ -641,7 +641,7 @@ __PACKAGE__->mk_accessors('sequences_count');
   Usage: my $seq = $fs->get_sequence('LE_HBa0001A02');
   Desc : get a particular sequence from this db
   Args : sequence name to retrieve
-  Ret  : Bio::PrimarySeqI object, or nothing if not found
+  Ret  : Bio::PrimarySeqI-implementing object, or nothing if not found
   Side Effects: dies on error
 
 =cut
@@ -653,33 +653,28 @@ sub get_sequence {
     croak "cannot get_sequence on a database that has not been indexed for retrieval!" unless $self->indexed_seqs;
 
     my $ffbn = $self->full_file_basename;
-    my $s = `fastacmd -d '$ffbn' -s '$seqname' 2>&1`;
-    return if $s =~ /ERROR:\s+Entry\s*"[^"]+"\s+not found/;
 
-    # extract defline and sequence NOT using regular expressions -
-    # which are too slow - and sometimes fail - for large sequences
-    #
-    my $defline = substr($s, 0, index($s, "\n"));
-    my $seq = substr($s, index($s, "\n")+1);
+    # we can't know how big this sequence is.  fastacmd has no way (or
+    # at least no documented way) to query seq lengths.  so we need to
+    # treat the sequence as if it were big.  cause sometimes it is.
+    # so we stream to a LargePrimarySeq.
+    CORE::open my $fc, "fastacmd -d '$ffbn' -s '$seqname' 2>&1 |";
+    my $defline = <$fc>;
+    return if $defline =~ /ERROR:\s+Entry\s*"[^"]+"\s+not found/;
+    ( my $id, $defline ) = $defline =~ m(
+                                          >(?:lcl\|)?(\S+) \s+ (.*)
+                                        )x
+               or die "could not parse fastacmd output\n:$defline";
 
+    # steam the sequence into a LargePrimarySeq
+    my $seq = Bio::Seq::LargePrimarySeq->new( -id => $id, -desc => $defline );
+    #< read up to 4 MB of sequence at a time
+    while( my $seq_chunk = do { local $/ = \4_000_000; <$fc> }) {
+        $seq_chunk =~ s/\s//g;
+        $seq->add_sequence_as_string( $seq_chunk );
+    }
 
-    my ($id,$def) = $defline  =~ m(
-                >(?:lcl\|)?(\S+)\s+(.*)
-               )x
-       or die "could not parse fastacmd output\n:$s";
-
-    $seq =~ s/\s//g; #remove whitespace from the seq
-
-    my $seq_type = length $seq > 2**10
-        ? 'Bio::Seq::LargePrimarySeq'
-        : 'Bio::PrimarySeq';
-
-    eval "require $seq_type";
-
-    return $seq_type->new( -id => $id,
-                           -seq => $seq,
-                           -desc => $def,
-                          );
+    return $seq;
 }
 
 
