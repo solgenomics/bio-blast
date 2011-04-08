@@ -1,5 +1,7 @@
 {{$NEXT}}
 
+0.2       2011-04-08 15:11:03 America/Los_Angeles
+
  * Much better support for fetching very large sequences from BLAST
    databases, or portions thereof.  get_sequence() method on a
    Bio::BLAST::Database returns a new lazy-loading sequence object.
