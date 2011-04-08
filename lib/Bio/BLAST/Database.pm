@@ -666,10 +666,11 @@ sub get_sequence {
                                         )x
                or die "could not parse fastacmd output\n:$defline";
 
-    # steam the sequence into a LargePrimarySeq
+    # steam the sequence into a LargePrimarySeq, read up to 4 MiB of
+    # sequence at a time
     my $seq = Bio::Seq::LargePrimarySeq->new( -id => $id, -desc => $defline );
-    #< read up to 4 MB of sequence at a time
-    while( my $seq_chunk = do { local $/ = \4_000_000; <$fc> }) {
+    local $/ = \4_000_000;
+    while( my $seq_chunk = <$fc> ) {
         $seq_chunk =~ s/\s//g;
         $seq->add_sequence_as_string( $seq_chunk );
     }
