@@ -1,5 +1,14 @@
 {{$NEXT}}
 
+ * Much better support for fetching very large sequences from BLAST
+   databases, or portions thereof.  get_sequence() method on a
+   Bio::BLAST::Database returns a new lazy-loading sequence object.
+   subseq() fetch only the requested sequence region, and calls which
+   require the full sequence (e.g. seq() and length() ) are handled by
+   an encapsulated Bio::Seq::LargePrimarySeq object. All of this
+   drastically improves speed and reduces memory usage when using very
+   large sequences.
+
 0.1   2011-04-07 16:01:00 America/Los_Angeles
 
  * initial release
