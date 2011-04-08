@@ -18,12 +18,22 @@ large, so can handle arbitrarily large sequences relatively well.
 L<Bio::PrimarySeqI>
 
 =cut
+
 use Carp;
 
 use Bio::PrimarySeq;
 use Bio::Seq::LargePrimarySeq;
 
 use base 'Bio::PrimarySeqI';
+
+=method new
+
+For use by Bio::BLAST::Database only.
+
+Takes args -id and -bdb, which are the sequence's ID and the
+Bio::BLAST::Database object it's from, respectively.
+
+=cut
 
 sub new {
     my ( $class, %args ) = @_;
@@ -41,7 +51,7 @@ sub new {
     #read the defline out of the bdb
     my $s = $self->trunc(1,1)
       or return;
-    $self->{desc} = $s->description;
+    $self->{desc} = $s->desc;
 
     return $self;
 }
@@ -60,13 +70,10 @@ sub length {
     return $self->whole_seq->length;
 }
 
-# lazy, cached LargePrimarySeq of the entire sequence.  used by only seq() and length()
-
-=method
+=method whole_seq
 
 Return a non-lazy L<Bio::PrimarySeqI>-implementing object containing
-the entire sequence.  Most developers should not need this, instead
-calling accessor methods on this object directly.
+the entire sequence.  Most developers should not need this.
 
 =cut
 
@@ -74,7 +81,7 @@ sub whole_seq {
     my ( $self ) = @_;
 
     return $self->{seq_obj} ||= do {
-        my $ffbn    = $self->bdb->full_file_basename;
+        my $ffbn    = $self->_bdb->full_file_basename;
         my $seqname = $self->id;
         CORE::open my $fc, "fastacmd -d '$ffbn' -s '$seqname' 2>&1 |";
 
@@ -95,7 +102,7 @@ sub trunc {
 
     my $length = $end - $start + 1;
 
-    my $ffbn    = $self->bdb->full_file_basename;
+    my $ffbn    = $self->_bdb->full_file_basename;
     my $seqname = $self->id;
     open my $fc, "fastacmd -d '$ffbn' -s '$seqname' -L $start,$end 2>&1 |";
 
@@ -112,23 +119,36 @@ sub alphabet {
     my $self = shift;
     croak ref($self)." objects are immutable, cannot set seq" if @_;
 
-    my $type = $self->bdb->type
+    my $type = $self->_bdb->type
         or return;
 
     return 'dna'     if $type eq 'nucleotide';
     return 'protein' if $type eq 'protein';
 
-    die "invalid type '$type' for blast database ".$self->bdb->full_file_basename;
+    die "invalid type '$type' for blast database ".$self->_bdb->full_file_basename;
 }
 
+=method id
+
+Read-only.  Return this sequence's identifier.
+
+=cut
+
 sub id               { $_[0]->{id}   }
-sub desc             { $_[0]->{desc}  }
-sub description      { $_[0]->{desc}  }
-sub display_id       { shift->id(@_) }
+
+=method desc, description
+
+Read only, return the description line, if any, for this sequence.
+
+=cut
+
+sub desc             { $_[0]->{desc} }
+*description = \&desc;
+
 sub accession_number { 'unknown'     }
+sub display_id       { $_[0]->id     }
 sub primary_id       { $_[0]->id     }
-sub bdb              { $_[0]->{bdb}  }
-sub bdb              { $_[0]->{bdb}  }
+sub _bdb             { $_[0]->{bdb}  }
 
 ########### helpers ################3
 
