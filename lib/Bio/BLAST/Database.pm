@@ -666,7 +666,7 @@ sub get_sequence {
                                         )x
                or die "could not parse fastacmd output\n:$defline";
 
-    # steam the sequence into a LargePrimarySeq, read up to 4 MiB of
+    # stream the sequence into a LargePrimarySeq, read up to 4 MiB of
     # sequence at a time
     my $seq = Bio::Seq::LargePrimarySeq->new( -id => $id, -desc => $defline );
     local $/ = \4_000_000;
