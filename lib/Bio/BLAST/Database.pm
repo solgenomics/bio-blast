@@ -120,10 +120,6 @@ sub open {
         croak $perm_error if $perm_error;
     }
 
-    if($self->write and my @files = $self->list_files ) {
-        warn (map "$_\n", "already present:", map " - $_", @files);
-    }
-
     # set some of our attrs from the existing files
     $self->_read_fastacmd_info;
 
