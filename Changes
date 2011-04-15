@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+ * Returned seqs now have an undefined desc if no definition line is
+   in the BLAST database, instead of "No definition line found"
+
 0.2       2011-04-08 15:11:03 America/Los_Angeles
 
  * Much better support for fetching very large sequences from BLAST

@@ -198,6 +198,8 @@ sub _parse_defline {
                                         )x
                or die "could not parse fastacmd output\n:$defline";
 
+    undef $defline if $defline =~ /^No definition line found\.?$/;
+
     return ( $id, $defline );
 }
 
