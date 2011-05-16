@@ -18,7 +18,7 @@ use IPC::Cmd qw/ can_run /;
 
 BEGIN {
     if( can_run('fastacmd') ) {
-        plan tests => 300;
+        plan tests => 301;
     }
     else {
         plan skip_all => 'fastacmd is not installed, required to test Bio::BLAST::Database';
@@ -37,6 +37,13 @@ BEGIN {
 
 
 my $tempdir = tempdir( CLEANUP => 1);
+
+lives_ok {
+    my $ffbn = catfile(qw/t data foo.protein/);
+    my $db = Bio::BLAST::Database->open( full_file_basename => $ffbn, type => 'protein' );
+    isa_ok($db, 'Bio::BLAST::Database');
+    $db->format_from_file( seqfile => "$ffbn.seq");
+} , 'can create and index from a relative path';
 
 
 ###  test die cases
