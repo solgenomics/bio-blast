@@ -1,5 +1,8 @@
 {{$NEXT}}
 
+0.3       2011-05-18 16:16:59 America/Los_Angeles
+
+ * remove dependency on namespace::autoclean, which also pulls in Moose
  * Returned seqs now have an undefined desc if no definition line is
    in the BLAST database, instead of "No definition line found"
 
