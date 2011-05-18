@@ -3,7 +3,6 @@ package Bio::BLAST::Database;
 
 use strict;
 use warnings;
-use namespace::autoclean;
 
 use POSIX;
 
@@ -25,6 +24,8 @@ use List::Util qw/ min max /;
 use List::MoreUtils qw/ all any /;
 
 use Bio::BLAST::Database::Seq;
+
+use namespace::clean;
 
 =head1 SYNOPSIS
 
