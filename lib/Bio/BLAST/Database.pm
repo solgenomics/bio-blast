@@ -16,7 +16,7 @@ use File::Basename;
 use File::Copy;
 use File::Path;
 use File::Slurp qw/slurp/;
-use File::Spec::Functions qw/splitdir catdir/;
+use File::Spec::Functions qw/ splitdir catdir devnull /;
 
 use IPC::System::Simple 'systemx';
 
@@ -354,7 +354,7 @@ sub format_from_file {
            -i => $seqfile,
            -n => $new_ffbn,
            ($title ? (-t => $title) : ()),
-           -l => '/dev/null',
+           -l => devnull(),
            -o => $args{indexed_seqs}      ? 'T' : 'F',
            -p => $self->type eq 'protein' ? 'T' : 'F',
          );
