@@ -1,5 +1,9 @@
 {{$NEXT}}
 
+0.4       2011-09-12 08:46:27 America/Los_Angeles
+
+ * fix a crash in a warning message about deleting obsolete files
+
 0.3       2011-05-18 16:16:59 America/Los_Angeles
 
  * remove dependency on namespace::autoclean, which also pulls in Moose
