@@ -18,10 +18,10 @@ use IPC::Cmd qw/ can_run /;
 
 BEGIN {
     if( can_run('fastacmd') ) {
-        plan tests => 300;
+        plan tests => 302;
     }
     else {
-        plan skip_all => 'fastacmd is not installed, required to test Bio::BLAST::Database';
+        plan skip_all => 'fastacmd is not installed (in PATH), required to test Bio::BLAST::Database';
     }
 }
 
@@ -217,6 +217,10 @@ foreach my $f (@newfiles) {
 chmod 0744, $_ for @newfiles;
 ok(! $fs3->check_format_permissions, 'and then it comes back OK after all are writable again' );
 
+# now test formatting it yet again
+$fs3->format_from_file( seqfile => $test_seq_file );
+is( scalar @newfiles, 3, 'format succeeded again' );
+ok(! $fs3->check_format_permissions, 'permissions OK' );
 
 #test downloading and formatting NR
 SKIP: {

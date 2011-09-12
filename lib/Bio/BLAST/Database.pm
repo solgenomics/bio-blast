@@ -394,7 +394,7 @@ sub format_from_file {
   #delete any old files that were not overwritten
   if(@oldfiles) {
     unlink @oldfiles;
-    carp "WARNING: these files for database ".$self->file_base." are no longer used and have been removed:\n",map {"-$_\n"} @oldfiles;
+    carp "WARNING: these files for database ".$self->full_file_basename." are no longer used and have been removed:\n",map {"-$_\n"} @oldfiles;
   }
 
 
