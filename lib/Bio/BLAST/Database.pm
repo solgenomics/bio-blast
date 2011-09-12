@@ -59,8 +59,8 @@ Each object of this class represents an NCBI-formatted sequence
 database on disk, which is a set of files, the exact structure of
 which varies a bit with the type and size of the sequence set.
 
-This is mostly an object-oriented wrapper for using C<fastacmd> and
-C<formatdb>.
+This is mostly an object-oriented wrapper for using NCBI's C<fastacmd>
+and C<formatdb> tools.
 
 =head1 BASE CLASS(ES)
 
